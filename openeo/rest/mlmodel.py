@@ -13,6 +13,8 @@ from openeo.rest import (
 )
 from openeo.rest._datacube import _ProcessGraphAbstraction
 from openeo.rest.job import BatchJob
+from openeo.util import InvalidBBoxException, dict_no_none, guess_format, to_bbox_dict
+from openeo.rest.datacube import DataCube
 
 if typing.TYPE_CHECKING:
     # Imports for type checking only (circular import issue at runtime).
@@ -197,3 +199,28 @@ class MlModel(_ProcessGraphAbstraction):
             job_options=job_options,
             log_level=log_level,
         )
+    
+
+    def fit(self, training_set, label) -> MlModel: # ml_fit
+        pgnode = PGNode(
+            process_id="ml_fit",
+            arguments=dict_no_none(
+                model=self,
+                training_set= training_set,
+                label = label
+            ),
+        )
+        model = MlModel(graph=pgnode, connection=self._connection) # TODO: check if this is correct
+        return model
+
+    def predict(self, data, dimension) -> DataCube: # ml_predict
+        pgnode = PGNode(
+            process_id="ml_predict",
+            arguments=dict_no_none(
+                model=self,
+                data=data,
+                dimension=dimension
+            ),
+        )
+        datacube = DataCube(graph=pgnode, connection=self._connection) # TODO: check if this is correct
+        return datacube

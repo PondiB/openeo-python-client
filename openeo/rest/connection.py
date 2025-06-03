@@ -1415,6 +1415,18 @@ class Connection(RestApiConnection):
         .. versionadded:: 0.10.0
         """
         return MlModel.load_ml_model(connection=self, id=id)
+    
+
+    def mlm_class_random_forest(self, max_variables: Optional[int]=None, num_trees: int=100, seed: Optional[int]=None):
+        pgnode = PGNode(
+            process_id="mlm_class_random_forest",
+            arguments=dict_no_none(
+                max_variables=max_variables,
+                num_trees=num_trees,
+                seed=seed
+            ),
+        )
+        return MlModel(graph=pgnode, connection=self)
 
     @openeo_process
     def load_geojson(
