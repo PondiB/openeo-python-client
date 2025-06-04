@@ -13,12 +13,12 @@ from openeo.rest import (
 )
 from openeo.rest._datacube import _ProcessGraphAbstraction
 from openeo.rest.job import BatchJob
-from openeo.util import InvalidBBoxException, dict_no_none, guess_format, to_bbox_dict
-from openeo.rest.datacube import DataCube
+from openeo.util import dict_no_none
 
 if typing.TYPE_CHECKING:
     # Imports for type checking only (circular import issue at runtime).
     from openeo import Connection
+    from openeo.rest.datacube import DataCube
 
 _log = logging.getLogger(__name__)
 
@@ -36,15 +36,30 @@ class MlModel(_ProcessGraphAbstraction):
     def __init__(self, graph: PGNode, connection: Union[Connection, None]):
         super().__init__(pgnode=graph, connection=connection)
 
-    def save_ml_model(self, options: Optional[dict] = None):
+    def save_ml_model(self, name: str, tasks: list, options: Optional[dict] = None) -> MlModel:
         """
+        Save a ML model.
         Saves a machine learning model as part of a batch job.
+        The model will be accompanied by a separate STAC Item that implements the mlm-model extension.
 
+        :param name: A distinct name of the model.
+        :param tasks: Specifies the ML tasks which the model can be used for.
+            Valid tasks are: regression, classification, object-detection, detection,
+            scene-classification, segmentation, semantic-segmentation, similarity-search,
+            generative, image-captioning, super-resolution.
         :param options: Additional parameters to create the file(s).
+        :return: Returns false if the process failed to store the model, true otherwise.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
         """
         pgnode = PGNode(
             process_id="save_ml_model",
-            arguments={"data": self, "options": options or {}}
+            arguments={
+                "data": self,
+                "name": name,
+                "tasks": tasks,
+                "options": options or {}
+            }
         )
         return MlModel(graph=pgnode, connection=self._connection)
 
@@ -201,26 +216,77 @@ class MlModel(_ProcessGraphAbstraction):
         )
     
 
-    def fit(self, training_set, label) -> MlModel: # ml_fit
+    def fit(self, training_set, target: str) -> MlModel: # ml_fit
+        """
+        Train a machine learning model.
+        Executes the fit of a specified machine learning model based on training data.
+        The function is generic and supports different machine learning models.
+
+        :param training_set: The training set for the model, provided as a vector data cube. 
+            This set contains both the independent variables and the dependent variable that 
+            the model analyzes to learn patterns and relationships within the data.
+        :param target: The column in the training set that represents the dependent variable for model training.
+        :return: A trained model object that can be saved with save_ml_model() and restored with load_ml_model().
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
         pgnode = PGNode(
             process_id="ml_fit",
             arguments=dict_no_none(
                 model=self,
-                training_set= training_set,
-                label = label
+                training_set=training_set,
+                target=target
             ),
         )
-        model = MlModel(graph=pgnode, connection=self._connection) # TODO: check if this is correct
+        model = MlModel(graph=pgnode, connection=self._connection)
         return model
 
-    def predict(self, data, dimension) -> DataCube: # ml_predict
+    def predict(self, data, dimensions: list) -> DataCube: # ml_predict
+        """
+        Predict using ML.
+        Applies a machine learning model to a data cube of input features and returns the predicted values.
+
+        :param data: The data cube containing the input features.
+        :param dimensions: Zero or more dimensions that will be reduced by the model. 
+            Fails with a DimensionNotAvailable exception if one of the specified dimensions does not exist.
+        :return: A data cube with the predicted values. It removes the specified dimensions and adds new dimension 
+            for the predicted values. It has the name predictions and is of type other. If a single value is returned, 
+            the dimension has a single label with name 0.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
         pgnode = PGNode(
             process_id="ml_predict",
             arguments=dict_no_none(
                 model=self,
                 data=data,
-                dimension=dimension
+                dimensions=dimensions
             ),
         )
-        datacube = DataCube(graph=pgnode, connection=self._connection) # TODO: check if this is correct
+        datacube = DataCube(graph=pgnode, connection=self._connection)
+        return datacube
+    
+    def predict_probabilities(self, data, dimensions: list) -> DataCube: # ml_predict_probabilities
+        """
+        Predict class probabilities using ML.
+        Applies a machine learning model to a data cube of input features and returns the predicted class probabilities.
+
+        :param data: The data cube containing the input features.
+        :param dimensions: Zero or more dimensions that will be reduced by the model. 
+            Fails with a DimensionNotAvailable exception if one of the specified dimensions does not exist.
+        :return: A data cube with the predicted class probabilities. It removes the specified dimensions and adds 
+            a new dimension for the class probabilities. The dimension has the name classes and is of type other. 
+            Each label in the dimension represents a class, and the values are the probabilities for each class.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        pgnode = PGNode(
+            process_id="ml_predict_probabilities",
+            arguments=dict_no_none(
+                model=self,
+                data=data,
+                dimensions=dimensions
+            ),
+        )
+        datacube = DataCube(graph=pgnode, connection=self._connection)
         return datacube

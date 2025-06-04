@@ -1417,12 +1417,85 @@ class Connection(RestApiConnection):
         return MlModel.load_ml_model(connection=self, id=id)
     
 
-    def mlm_class_random_forest(self, max_variables: Optional[int]=None, num_trees: int=100, seed: Optional[int]=None):
+    def mlm_class_random_forest(
+        self,
+        max_variables: Optional[Union[int, str]] = None,
+        num_trees: int = 100,
+        seed: Optional[int] = None
+    ):
+        """
+        Initialize a random forest classification model.
+        This component sets up the model structure but does not perform training or handle data splitting.
+        The resulting model can be trained later using ml_fit.
+
+        :param max_variables: Specifies how many split variables will be used at a node.
+            The following options are available:
+            - integer: The given number of variables are considered for each split.
+            - "all": All variables are considered for each split.
+            - "log2": The logarithm with base 2 of the number of variables are considered for each split.
+            - "onethird": A third of the number of variables are considered for each split.
+            - "sqrt": The square root of the number of variables are considered for each split. This is often the default for classification.
+        :param num_trees: The number of trees build within the Random Forest classification.
+        :param seed: A randomization seed to use for the random sampling in training. If not given or None, no seed is used and results may differ on subsequent use.
+        :return: A model object that can be trained using ml_fit.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
         pgnode = PGNode(
             process_id="mlm_class_random_forest",
             arguments=dict_no_none(
                 max_variables=max_variables,
                 num_trees=num_trees,
+                seed=seed
+            ),
+        )
+        return MlModel(graph=pgnode, connection=self)
+    
+
+    def mlm_class_tempcnn(
+        self,
+        cnn_layers: List[int] = [256, 256, 256],
+        cnn_kernels: List[int] = [7, 7, 7],
+        cnn_dropout_rates: List[float] = [0.2, 0.2, 0.2],
+        dense_layer_nodes: int = 256,
+        dense_layer_dropout_rate: float = 0.5,
+        epochs: Optional[int] = 100,
+        batch_size: Optional[int] = 64,
+        optimizer: Optional[str] = "adam",
+        learning_rate: Optional[float] = 0.001,
+        seed: Optional[int] = None
+    ):
+        """
+        Initialize a Temporal Convolutional Neural Network (TempCNN) classification model.
+        This component sets up the model structure but does not perform training or handle data splitting.
+        The resulting model can be trained later using ml_fit.
+
+        :param cnn_layers: List of integers specifying the number of filters in each convolutional layer.
+        :param cnn_kernels: List of integers specifying the kernel size for each convolutional layer.
+        :param cnn_dropout_rates: List of numbers between 0 and 1 specifying the dropout rate for each convolutional layer.
+        :param dense_layer_nodes: Number of nodes in the dense layer.
+        :param dense_layer_dropout_rate: Dropout rate for the dense layer.
+        :param epochs: Number of training epochs.
+        :param batch_size: Size of the training batches.
+        :param optimizer: The optimizer to use for training. One of: adam, adabound, adabelief, madagrad, nadam, qhadam, radam, swats, yogi.
+        :param learning_rate: The learning rate for the optimizer.
+        :param seed: A randomization seed to use for reproducibility.
+        :return: A model object that can be trained using ml_fit.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        pgnode = PGNode(
+            process_id="mlm_class_tempcnn",
+            arguments=dict_no_none(
+                cnn_layers=cnn_layers,
+                cnn_kernels=cnn_kernels,
+                cnn_dropout_rates=cnn_dropout_rates,
+                dense_layer_nodes=dense_layer_nodes,
+                dense_layer_dropout_rate=dense_layer_dropout_rate,
+                epochs=epochs,
+                batch_size=batch_size,
+                optimizer=optimizer,
+                learning_rate=learning_rate,
                 seed=seed
             ),
         )
