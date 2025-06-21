@@ -67,7 +67,8 @@ from openeo.rest.capabilities import OpenEoCapabilities
 from openeo.rest.datacube import DataCube, InputDate
 from openeo.rest.graph_building import CollectionProperty
 from openeo.rest.job import BatchJob, RESTJob
-from openeo.rest.mlmodel import MlModel
+# from openeo.rest.mlmodel import MlModel
+from openeo.rest.ml_extension import MLModel
 from openeo.rest.models.general import (
     CollectionListingResponse,
     JobListingResponse,
@@ -91,6 +92,10 @@ from openeo.utils.http import (
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
 )
+
+from rpy2 import robjects
+from rpy2.robjects.packages import importr
+
 from openeo.utils.version import ComparableVersion
 
 __all__ = ["Connection", "connect"]
@@ -1404,8 +1409,33 @@ class Connection(RestApiConnection):
             bands=bands,
             properties=properties,
         )
+    
+    def readRDS(self, file_path):
+        """
+        Reads an RDS file and returns its JSON-serialized content using R's jsonlite::serializeJSON.
 
-    def load_ml_model(self, id: Union[str, BatchJob]) -> MlModel:
+        Parameters:
+        - file_path (str): Path to the RDS file.
+
+        Returns:
+        - str: JSON-serialized representation of the R object.
+        """
+        # Import the required R package
+        jsonlite = importr('jsonlite')
+        
+        # Load R functions
+        r_readRDS = robjects.r['readRDS']
+        r_serializeJSON = robjects.r['serializeJSON']
+        
+        # Read the RDS file
+        r_data = r_readRDS(file_path)
+        
+        # Serialize to JSON
+        json_data = r_serializeJSON(r_data)
+        
+        return str(json_data)
+
+    def load_ml_model(self, id: Union[str, BatchJob]) -> MLModel:
         """
         Loads a machine learning model from a STAC Item.
 
@@ -1414,7 +1444,7 @@ class Connection(RestApiConnection):
 
         .. versionadded:: 0.10.0
         """
-        return MlModel.load_ml_model(connection=self, id=id)
+        return MLModel.load_ml_model(connection=self, id=id) 
     
 
     def mlm_class_random_forest(
@@ -1449,7 +1479,7 @@ class Connection(RestApiConnection):
                 seed=seed
             ),
         )
-        return MlModel(graph=pgnode, connection=self)
+        return MLModel(graph=pgnode, connection=self)
     
 
     def mlm_class_tempcnn(
@@ -1499,7 +1529,7 @@ class Connection(RestApiConnection):
                 seed=seed
             ),
         )
-        return MlModel(graph=pgnode, connection=self)
+        return MLModel(graph=pgnode, connection=self)
 
     @openeo_process
     def load_geojson(
