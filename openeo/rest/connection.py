@@ -1566,6 +1566,207 @@ class Connection(RestApiConnection):
         )
         return MLModel(graph=pgnode, connection=self)
 
+    def mlm_class_svm(
+        self,
+        kernel: str = "rbf",
+        C: float = 1,
+        gamma: float = 1,
+        degree: int = 3,
+        coef0: float = 0,
+        tolerance: float = 0.001,
+        cachesize: int = 1000,
+        seed: Optional[int] = None
+    ):
+        """
+        Initialize a Support Vector Machine (SVM) classification model.
+        This component sets up the model structure but does not perform training or handle data splitting.
+        The resulting model can be trained later using ml_fit.
+
+        :param kernel: Specifies the kernel type to be used in the algorithm. One of: 'linear', 'poly', 'rbf', 'sigmoid'.
+        :param C: Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive.
+        :param gamma: Kernel coefficient for 'rbf', 'poly', and 'sigmoid'. Higher values lead to tighter fits.
+        :param degree: Degree of the polynomial kernel function (only relevant for 'poly' kernel).
+        :param coef0: Independent term in the kernel function (only relevant for 'poly' and 'sigmoid' kernels).
+        :param tolerance: Tolerance of termination criterion.
+        :param cachesize: Size of the kernel cache in MB.
+        :param seed: A randomization seed to use for reproducibility. If not given or None, no seed is used and results may differ on subsequent use.
+        :return: A model object that can be trained using ml_fit.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        pgnode = PGNode(
+            process_id="mlm_class_svm",
+            arguments=dict_no_none(
+                kernel=kernel,
+                C=C,
+                gamma=gamma,
+                degree=degree,
+                coef0=coef0,
+                tolerance=tolerance,
+                cachesize=cachesize,
+                seed=seed
+            ),
+        )
+        return MLModel(graph=pgnode, connection=self)
+    
+
+
+    def mlm_regr_random_forest(
+        self,
+        max_variables: Optional[Union[int, str]] = None,
+        num_trees: int = 100,
+        seed: Optional[int] = None
+    ):
+        """
+        Initialize a random forest regression model.
+        This component prepares the model structure but does not perform training. The model can be trained later using ml_fit.
+
+        :param max_variables: Specifies how many split variables will be used at a node. Options: integer, 'all', 'log2', 'onethird', 'sqrt'.
+        :param num_trees: The number of trees build within the Random Forest regression.
+        :param seed: A randomization seed to use for the random sampling in training. If not given or None, no seed is used and results may differ on subsequent use.
+        :return: A model object that can be trained using ml_fit.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        pgnode = PGNode(
+            process_id="mlm_regr_random_forest",
+            arguments=dict_no_none(
+                max_variables=max_variables,
+                num_trees=num_trees,
+                seed=seed
+            ),
+        )
+        return MLModel(graph=pgnode, connection=self)
+
+    def mlm_regr_svm(
+        self,
+        kernel: str = "rbf",
+        C: float = 1,
+        epsilon: float = 0.1,
+        gamma: float = 1,
+        degree: int = 3,
+        coef0: float = 0,
+        tolerance: float = 0.001,
+        cachesize: int = 1000,
+        seed: Optional[int] = None
+    ):
+        """
+        Initialize a Support Vector Machine (SVM) regression model.
+        This component sets up the model structure but does not perform training or handle data splitting. The resulting model can be trained later using ml_fit.
+
+        :param kernel: Specifies the kernel type to be used in the algorithm. One of: 'linear', 'poly', 'rbf', 'sigmoid'.
+        :param C: Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive.
+        :param epsilon: Epsilon in the epsilon-SVR model. Specifies the epsilon-tube within which no penalty is associated in the training loss function with points predicted within a distance epsilon from the actual value.
+        :param gamma: Kernel coefficient for 'rbf', 'poly', and 'sigmoid'. Higher values lead to tighter fits.
+        :param degree: Degree of the polynomial kernel function (only relevant for 'poly' kernel).
+        :param coef0: Independent term in the kernel function (only relevant for 'poly' and 'sigmoid' kernels).
+        :param tolerance: Tolerance of termination criterion.
+        :param cachesize: Size of the kernel cache in MB.
+        :param seed: A randomization seed to use for reproducibility. If not given or None, no seed is used and results may differ on subsequent use.
+        :return: A model object that can be trained using ml_fit.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        pgnode = PGNode(
+            process_id="mlm_regr_svm",
+            arguments=dict_no_none(
+                kernel=kernel,
+                C=C,
+                epsilon=epsilon,
+                gamma=gamma,
+                degree=degree,
+                coef0=coef0,
+                tolerance=tolerance,
+                cachesize=cachesize,
+                seed=seed
+            ),
+        )
+        return MLModel(graph=pgnode, connection=self)
+
+    def mlm_class_xgboost(
+        self,
+        learning_rate: float = 0.15,
+        max_depth: int = 5,
+        min_child_weight: float = 1,
+        subsample: float = 0.8,
+        min_split_loss: float = 1,
+        seed: Optional[int] = None
+    ):
+        """
+        Initialize an XGBoost classification model.
+        This component sets up the model structure but does not perform training or handle data splitting. The resulting model can be trained later using ml_fit.
+
+        :param learning_rate: Step size shrinkage used in update to prevent overfitting.
+        :param max_depth: Maximum depth of a tree.
+        :param min_child_weight: Minimum sum of instance weight (hessian) needed in a child.
+        :param subsample: Subsample ratio of the training instance.
+        :param min_split_loss: Minimum loss reduction required to make a further partition on a leaf node of the tree.
+        :param seed: A randomization seed to use for reproducibility. If not given or None, no seed is used and results may differ on subsequent use.
+        :return: A model object that can be trained using ml_fit.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        pgnode = PGNode(
+            process_id="mlm_class_xgboost",
+            arguments=dict_no_none(
+                learning_rate=learning_rate,
+                max_depth=max_depth,
+                min_child_weight=min_child_weight,
+                subsample=subsample,
+                min_split_loss=min_split_loss,
+                seed=seed
+            ),
+        )
+        return MLModel(graph=pgnode, connection=self)
+
+    def mlm_class_mlp(
+        self,
+        hidden_layer_sizes: Optional[List[int]] = None,
+        activation: str = "relu",
+        dropout_rates: Optional[List[float]] = None,
+        epochs: int = 100,
+        batch_size: int = 64,
+        optimizer: str = "adam",
+        learning_rate: float = 0.001,
+        seed: Optional[int] = None
+    ):
+        """
+        Initialize a Multi-Layer Perceptron (MLP) classification model.
+        This component sets up the model structure but does not perform training or handle data splitting. The resulting model can be trained later using ml_fit.
+
+        :param hidden_layer_sizes: List of integers specifying the number of neurons in each hidden layer.
+        :param activation: Activation function for the hidden layers. One of: 'relu', 'tanh', 'logistic'.
+        :param dropout_rates: List of numbers between 0 and 1 specifying the dropout rate for each hidden layer.
+        :param epochs: Number of training epochs.
+        :param batch_size: Size of the training batches.
+        :param optimizer: The optimizer to use for training.
+        :param learning_rate: The learning rate for the optimizer.
+        :param seed: A randomization seed to use for reproducibility. If not given or None, no seed is used and results may differ on subsequent use.
+        :return: A model object that can be trained using ml_fit.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        if hidden_layer_sizes is None:
+            hidden_layer_sizes = [512, 512, 512]
+        if dropout_rates is None:
+            dropout_rates = [0.4, 0.3, 0.2]
+        pgnode = PGNode(
+            process_id="mlm_class_mlp",
+            arguments=dict_no_none(
+                hidden_layer_sizes=hidden_layer_sizes,
+                activation=activation,
+                dropout_rates=dropout_rates,
+                epochs=epochs,
+                batch_size=batch_size,
+                optimizer=optimizer,
+                learning_rate=learning_rate,
+                seed=seed
+            ),
+        )
+        return MLModel(graph=pgnode, connection=self)
+
+
+
     @openeo_process
     def load_geojson(
         self,
@@ -2052,7 +2253,6 @@ class Connection(RestApiConnection):
             params["discover"] = "1"
         url = f"{editor_url}?{urllib.parse.urlencode(params)}"
         return url
-
 
 def connect(
     url: Optional[str] = None,
