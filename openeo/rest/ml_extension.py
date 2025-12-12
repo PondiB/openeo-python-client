@@ -79,6 +79,50 @@ class MLModel(_ProcessGraphAbstraction):
         if isinstance(id, BatchJob):
             id = id.job_id
         return MLModel(graph=PGNode(process_id="load_ml_model", id=id), connection=connection)
+        
+    @staticmethod
+    @openeo_process
+    def load_stac_ml(
+        connection: Connection,
+        uri: Union[str, pathlib.Path],
+        model_asset: Optional[str] = None,
+        input_index: int = 0,
+        output_index: int = 0
+    ) -> MLModel:
+        """
+        Load a machine learning model from a STAC Item.
+
+        Loads a machine learning model from a STAC Item. Such a model could be trained and saved as part of a previous batch
+        job with processes such as ``ml_fit()`` and ``save_ml_model()`` or externally hosted models.
+
+        :param connection: Connection object
+        :param uri: The STAC Item to load the machine learning model from. The STAC Item must implement the
+            `mlm <https://github.com/stac-extensions/mlm>`_ extension. This parameter can point to a remote STAC Item
+            via URL or a local JSON file.
+        :param model_asset: The Asset name of the given STAC Item which represents the actual ML model. The asset must list
+            ``mlm:model`` as its role. If only one asset lists ``mlm:model`` as its role, this parameter is optional as
+            this asset will be used by default. If multiple assets list ``mlm:model`` as their role, this parameter is
+            required to determine which asset to use.
+        :param input_index: STAC:MLM items support multiple ML model input specifications. This parameter specifies the
+            index of the input specification in the ``mlm:input`` array to use for prediction or training. As
+            ``mlm:input`` is an array, the first input in the array has index 0.
+        :param output_index: STAC:MLM items support multiple ML model output specifications. This parameter specifies the
+            index of the output specification in the ``mlm:output`` array to use for prediction or training. As
+            ``mlm:output`` is an array, the first output in the array has index 0.
+        :return: A machine learning model to be used with machine learning processes such as ``ml_predict()``.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        arguments = {
+            "uri": str(uri),
+            "input_index": input_index,
+            "output_index": output_index
+        }
+        
+        if model_asset is not None:
+            arguments["model_asset"] = model_asset
+            
+        return MLModel(graph=PGNode(process_id="load_stac_ml", arguments=arguments), connection=connection)
 
     def execute_batch(
         self,
