@@ -1531,7 +1531,8 @@ class Connection(RestApiConnection):
         batch_size: Optional[int] = 64,
         optimizer: Optional[str] = "adam",
         learning_rate: Optional[float] = 0.001,
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
+        verbose: Optional[bool] = False
     ):
         """
         Initialize a Temporal Convolutional Neural Network (TempCNN) classification model.
@@ -1564,7 +1565,8 @@ class Connection(RestApiConnection):
                 batch_size=batch_size,
                 optimizer=optimizer,
                 learning_rate=learning_rate,
-                seed=seed
+                seed=seed,
+                verbose=verbose
             ),
         )
         return MLModel(graph=pgnode, connection=self)
