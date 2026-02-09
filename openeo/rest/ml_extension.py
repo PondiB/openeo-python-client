@@ -37,17 +37,13 @@ class MLModel(_ProcessGraphAbstraction):
     def __init__(self, graph: PGNode, connection: Union[Connection, None]):
         super().__init__(pgnode=graph, connection=connection)
 
-    def save_ml_model(self, name: str, tasks: list, options: Optional[dict] = None) -> MLModel:
+    def save_ml_model(self, name: str, options: Optional[dict] = None) -> MLModel:
         """
         Save a ML model.
         Saves a machine learning model as part of a batch job.
         The model will be accompanied by a separate STAC Item that implements the mlm-model extension.
 
         :param name: A distinct name of the model.
-        :param tasks: Specifies the ML tasks which the model can be used for.
-            Valid tasks are: regression, classification, object-detection, detection,
-            scene-classification, segmentation, semantic-segmentation, similarity-search,
-            generative, image-captioning, super-resolution.
         :param options: Additional parameters to create the file(s).
         :return: Returns false if the process failed to store the model, true otherwise.
 
@@ -58,7 +54,6 @@ class MLModel(_ProcessGraphAbstraction):
             arguments={
                 "data": self,
                 "name": name,
-                "tasks": tasks,
                 "options": options or {}
             }
         )
