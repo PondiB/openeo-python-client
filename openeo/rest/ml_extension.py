@@ -37,7 +37,12 @@ class MLModel(_ProcessGraphAbstraction):
     def __init__(self, graph: PGNode, connection: Union[Connection, None]):
         super().__init__(pgnode=graph, connection=connection)
 
-    def save_ml_model(self, name: str, options: Optional[dict] = None) -> MLModel:
+    def save_ml_model(
+        self,
+        name: str,
+        options: Optional[dict] = None,
+        return_model: bool = False,
+    ) -> MLModel:
         """
         Save a ML model.
         Saves a machine learning model as part of a batch job.
@@ -45,17 +50,23 @@ class MLModel(_ProcessGraphAbstraction):
 
         :param name: A distinct name of the model.
         :param options: Additional parameters to create the file(s).
-        :return: Returns false if the process failed to store the model, true otherwise.
+        :param return_model: If ``True``, return the input model after a successful save so it can be
+            chained (for example with ``ml_predict()``) in the same process graph.
+            If ``False`` (default), the process returns ``true`` on success or ``false`` on failure.
+        :return: If ``return_model`` is ``False`` (default), the process returns ``true`` on success or
+            ``false`` on failure. If ``return_model`` is ``True``, returns the saved ml-model on success.
+            In both cases a :py:class:`MLModel` wrapper is returned for process graph construction.
 
         .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
         """
         pgnode = PGNode(
             process_id="save_ml_model",
-            arguments={
-                "data": self,
-                "name": name,
-                "options": options or {}
-            }
+            arguments=dict_no_none(
+                data=self,
+                name=name,
+                options=options or {},
+                return_model=return_model or None,
+            ),
         )
         return MLModel(graph=pgnode, connection=self._connection)
 
