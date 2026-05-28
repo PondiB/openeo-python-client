@@ -2011,8 +2011,13 @@ class DataCube(_ProcessGraphAbstraction):
         elif target_band is None:
             metadata = self.metadata.reduce_dimension(self.metadata.band_dimension.name)
         else:
-            # TODO: first drop "bands" dim and re-add it with single "ndvi" band
-            metadata = self.metadata.append_band(Band(name=target_band, common_name="ndvi"))
+            # Append NDVI band: if no band dimension exists, create one with the new band
+            if self.metadata.has_band_dimension():
+                metadata = self.metadata.append_band(Band(name=target_band, common_name="ndvi"))
+            else:
+                metadata = self.metadata.add_dimension(
+                    name="bands", label=target_band, type="bands"
+                )
         return self.process(
             process_id="ndvi",
             arguments=dict_no_none(
