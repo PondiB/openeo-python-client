@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import pathlib
 import typing
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 from openeo.internal.documentation import openeo_process
 from openeo.internal.graph_building import PGNode
@@ -291,6 +291,113 @@ class MLModel(_ProcessGraphAbstraction):
         )
         model = MLModel(graph=pgnode, connection=self._connection)
         return model
+
+    def tune_grid(
+        self,
+        training_set,
+        parameters: dict,
+        target: Optional[str] = None,
+        scoring: Optional[Union[str, List[str]]] = None,
+        cv: Optional[int] = None,
+        validation_split: Optional[float] = None,
+        seed: Optional[int] = None,
+    ) -> MLModel:
+        """
+        Grid search hyperparameter tuning.
+        Performs exhaustive grid search over specified hyperparameter combinations to find optimal model settings.
+        Each combination in the parameter grid is evaluated using cross-validation or a hold-out validation set,
+        and the best trained model based on the specified scoring metrics is returned.
+
+        :param training_set: The training set for the model, provided as a vector data cube or a reference.
+            This set contains both the independent variables and the dependent variable that the model
+            analyzes to learn patterns and relationships within the data.
+        :param parameters: Hyperparameter grid defining the search space. Each key is a hyperparameter name,
+            and each value is an array of candidate values to try. All combinations will be evaluated.
+        :param target: The name of the variable in the training set that serves as the target or ground truth
+            for model training. Set to ``None`` for unsupervised or self-supervised tasks. Default: ``"label"``.
+        :param scoring: One or more metrics used to evaluate and compare model performance.
+            If ``None``, the back-end selects an appropriate default metric based on the model task.
+            When multiple metrics are provided, the first metric in the list is used to select the best model.
+        :param cv: Number of cross-validation folds. If ``0`` or ``1``, uses a single train/validation split
+            instead of cross-validation. Default: ``5``.
+        :param validation_split: Fraction of training data used for validation when ``cv`` <= 1.
+            Ignored when using cross-validation. Default: ``0.2``.
+        :param seed: Random seed for reproducibility of data splits and model training.
+        :return: A trained model with the best hyperparameter combination found during the grid search.
+            The model metadata includes the tuning results such as the best hyperparameters and evaluation scores.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        pgnode = PGNode(
+            process_id="ml_tune_grid",
+            arguments=dict_no_none(
+                model=self,
+                training_set=training_set,
+                parameters=parameters,
+                target=target,
+                scoring=scoring,
+                cv=cv,
+                validation_split=validation_split,
+                seed=seed,
+            ),
+        )
+        return MLModel(graph=pgnode, connection=self._connection)
+
+    def tune_random(
+        self,
+        training_set,
+        parameters: dict,
+        n_iter: Optional[int] = None,
+        target: Optional[str] = None,
+        scoring: Optional[Union[str, List[str]]] = None,
+        cv: Optional[int] = None,
+        validation_split: Optional[float] = None,
+        seed: Optional[int] = None,
+    ) -> MLModel:
+        """
+        Random search hyperparameter tuning.
+        Performs random search over hyperparameter distributions to find optimal model settings.
+        Unlike grid search, random search samples a fixed number of parameter combinations from
+        specified distributions, which can be more efficient for high-dimensional parameter spaces.
+        Returns the best trained model based on the specified scoring metrics.
+
+        :param training_set: The training set for the model, provided as a vector data cube or a reference.
+            This set contains both the independent variables and the dependent variable that the model
+            analyzes to learn patterns and relationships within the data.
+        :param parameters: Hyperparameter distributions defining the search space. Each key is a hyperparameter name.
+            Values can be arrays (uniform sampling), or objects specifying distributions with ``type``
+            (``uniform``, ``log_uniform``, ``int_uniform``, ``choice``) and parameters (``min``, ``max``, ``values``).
+        :param n_iter: Number of random parameter combinations to sample and evaluate. Default: ``10``.
+        :param target: The name of the variable in the training set that serves as the target or ground truth
+            for model training. Set to ``None`` for unsupervised or self-supervised tasks. Default: ``"label"``.
+        :param scoring: One or more metrics used to evaluate and compare model performance.
+            If ``None``, the back-end selects an appropriate default metric based on the model task.
+            When multiple metrics are provided, the first metric in the list is used to select the best model.
+        :param cv: Number of cross-validation folds. If ``0`` or ``1``, uses a single train/validation split
+            instead of cross-validation. Default: ``5``.
+        :param validation_split: Fraction of training data used for validation when ``cv`` <= 1.
+            Ignored when using cross-validation. Default: ``0.2``.
+        :param seed: Random seed for reproducibility of parameter sampling, data splits, and model training.
+        :return: A trained model with the best hyperparameter combination found during the random search.
+            The model metadata includes the tuning results such as the best hyperparameters and evaluation scores.
+
+        .. warning:: EXPERIMENTAL: this process is experimental with the potential for major things to change.
+        """
+        pgnode = PGNode(
+            process_id="ml_tune_random",
+            arguments=dict_no_none(
+                model=self,
+                training_set=training_set,
+                parameters=parameters,
+                n_iter=n_iter,
+                target=target,
+                scoring=scoring,
+                cv=cv,
+                validation_split=validation_split,
+                seed=seed,
+            ),
+        )
+        return MLModel(graph=pgnode, connection=self._connection)
 
     def predict(self, data, dimensions: Optional[List] = None) -> DataCube: # ml_predict
         """
